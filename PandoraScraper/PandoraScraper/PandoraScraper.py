@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from shutil import move
 from selenium import webdriver
 import selenium
 import requests
@@ -118,6 +119,28 @@ def writeTags():
         audioFile.tag.title = song
         audioFile.tag.save(os.path.join(root, mp3))
 
+def sortMP3s(): #Sort files into folders by album to include cover art
+    files = os.listdir(root)
+    mp3s = []
+    for file in files:
+        if file.endswith('.mp3'):
+            mp3s.append(file)
+
+    for mp3 in mp3s:
+        pieces = mp3.split('-')
+
+        song = pieces[0] + '.mp3'
+        artist = pieces[1]
+        album = pieces[2][:-4]
+        if not os.path.isdir(os.path.join(root, album)):
+            os.mkdir(os.path.join(root,album))
+
+        if not os.path.exists(os.path.join(root, album, album + '.jpg')):
+            move(os.path.join(root, mp3[:-3] + 'jpg'), os.path.join(root, album, album + '.jpg'))
+        
+        move(os.path.join(root, mp3), os.path.join(root, album, song))
+
+
 station = "https://www.pandora.com/station/play/3860379080856310864"
 root = r'C:\Users\mmccutchan\Music\Pandora'
 username = 'drewmccutchan@gmail.com'
@@ -127,3 +150,4 @@ driver = webdriver.Chrome(r'C:\Users\mmccutchan\OneDrive\ChromeDriver\ChromeDriv
 signIn(username, password)
 getMP3s(1000, station)
 writeTags()
+sortMP3s()
