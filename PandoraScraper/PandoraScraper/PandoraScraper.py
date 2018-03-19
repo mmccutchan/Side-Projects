@@ -1,6 +1,10 @@
 from bs4 import BeautifulSoup
 from shutil import move
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from urllib.request import Request
 import selenium
 import requests
 import urllib
@@ -13,7 +17,7 @@ def signIn(username, password): #No, I'm not going to steal your data
     login = "https://www.pandora.com/account/sign-in"
     
     driver.get(login)
-    driver.implicitly_wait(10)
+    WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.NAME, 'username')))
 
     usernameField = driver.find_element_by_name('username')
     passwordField = driver.find_element_by_name('password')
@@ -22,7 +26,7 @@ def signIn(username, password): #No, I'm not going to steal your data
     driver.find_element_by_class_name("Login__form__row__button").click()
 
     try:
-        driver.implicitly_wait(10)
+        WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.CLASS_NAME, "ShuffleButton__button--compact--minimal")))
         driver.find_element_by_class_name("ShuffleButton__button--compact--minimal").click()
     except Exception as e:
         print("Could not click shuffle")
@@ -64,10 +68,15 @@ def getMP3s(songs, station):
         link = links[0]
         #print("ID:" + link.get("id"))
         #print("Matches num " + str(num) + " : " + str(int(link.get("id")[-1:]) == num))
-        try:
-            data = urllib.request.urlopen(link.get("src"))
-            coverArtImg = urllib.request.urlopen(coverArt)
+        
+                       
+        try:     
+            try:
+                coverArtImg = urllib.request.urlopen(Request(coverArt, headers={'User-Agent': 'Mozilla/5.0'}))
+            except Exception as e:
+                print("Couldn't get cover art")
 
+            data = urllib.request.urlopen(Request(link.get("src"), headers={'User-Agent': 'Mozilla/5.0'}))
             fileName = root + "\\" + title + '-' + artist + '-' + album + ".mp3"
             artName = root + "\\" + title + '-' + artist + '-' + album + ".jpg"
 
@@ -135,17 +144,22 @@ def sortMP3s(): #Sort files into folders by album to include cover art
         if not os.path.isdir(os.path.join(root, album)):
             os.mkdir(os.path.join(root,album))
 
-        if not os.path.exists(os.path.join(root, album, album + '.jpg')):
-            move(os.path.join(root, mp3[:-3] + 'jpg'), os.path.join(root, album, album + '.jpg'))
-        
+        if not os.path.exists(os.path.join(root, album, mp3[:-3] + '.jpg')):
+            move(os.path.join(root, mp3[:-3] + 'jpg'), os.path.join(root, album, mp3[:-3] + '.jpg'))
+        else:
+            os.remove(os.path.join(root, mp3[:-3] + 'jpg'))
+
         move(os.path.join(root, mp3), os.path.join(root, album, song))
 
-
+timeout = 20
 station = "https://www.pandora.com/station/play/3860379080856310864"
 root = r'C:\Users\mmccutchan\Music\Pandora'
-username = 'drewmccutchan@gmail.com'
-password = 'drew0998'
-driver = webdriver.Chrome(r'C:\Users\mmccutchan\OneDrive\ChromeDriver\ChromeDriver.exe')
+username = 'drewmccutchan@hotmail.com'
+password = 'mark0998'
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--mute-audio")
+
+driver = webdriver.Chrome(r'C:\Users\mmccutchan\OneDrive\ChromeDriver\ChromeDriver.exe', chrome_options=chrome_options)
 
 signIn(username, password)
 getMP3s(1000, station)

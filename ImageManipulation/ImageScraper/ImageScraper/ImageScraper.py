@@ -52,22 +52,35 @@ def getImgs(search):
                 print(imgUrl + " " + str(e))
 
         totalCount += count
-       
-dir = r"C:\Users\drewm\Downloads"
+      
+def deleteCopies():
+    for file in os.listdir(os.path.join(dir, folder)):
+        try:
+            img = Image.open(os.path.join(dir, folder, file))
+            for fileComp in os.listdir(os.path.join(dir, folder)):
+                imgComp = Image.open(os.path.join(dir, folder, fileComp))
+                if file != fileComp and img == imgComp:
+                    os.remove(os.path.join(dir, folder, file))
+                    break
+        except:
+            pass
+
+dir = r"C:\Users\mmccutchan\Downloads"
 regex = r'(?:imgurl=)(.[^&]*)(?:&)'
 regexW = r'(?:width=")(.[^"]*)(?:")'
 regexH = r'(?:height=")(.[^"]*)(?:")'
 hdr = {'User-Agent': 'A bot'}
-query = "1080p Cats" #input("What image would you like to scrape? ")
-folder = "Cats" #input("What folder should these be put in? ")
+query = input("What image would you like to scrape? ")
+folder = input("What folder should these be put in? ")
 if not os.path.exists(dir + "\\" + folder):
     os.mkdir(dir + "\\" + folder)
-limit = 800 #int(input("How many pictures would you like? "))
-size = "1920x1080" #input("Would you like your pictures to be a specific size? (WxH) or n ")
+limit = int(input("How many pictures would you like? "))
+size = input("Would you like your pictures to be a specific size? (WxH) or n ")
 if size != 'n':
     [w, h] = size.split("x")
     w = int(w)
     h = int(h)
 
 getImgs(query)
+deleteCopies()
 print("Complete!")
